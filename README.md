@@ -1,2 +1,2 @@
 # orbis
-Orbis is a real time 3D globe visualizing planes, satellites, and weather with mostly authentic data.
+Orbis is a web-based 3D planetary exploration project that procedurally generates planets, inspired by *No Man's Sky*.
