@@ -1,6 +1,12 @@
-import './styles/main.css';
-import { initIntroOverlay } from './ui/introOverlay.js';
+import { Engine } from './core/engine.js';
+import { Star } from './world/star.js';
 
-console.log('Orbis starting...');
+const canvas = document.getElementById('view');
+const engine = new Engine(canvas);
 
-initIntroOverlay();
+const star = new Star();
+engine.add(star);
+
+engine.camera.lookAt(star.position);
+
+engine.start();

@@ -1,0 +1,8 @@
+{
+  "field_of_view": 70,
+  "near_plane": 1,
+  "far_plane": 100000,
+  "start_position": [0, 2000, 1500],
+  "max_pixel_ratio": 2,
+  "max_delta_seconds": 0.1
+}

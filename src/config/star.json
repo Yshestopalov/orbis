@@ -1,0 +1,10 @@
+{
+  "radius": 1000,
+  "color": "#ffcc33",
+  "width_segments": 96,
+  "height_segments": 48,
+  "light_color": "#fff1c4",
+  "light_intensity": 3,
+  "light_distance": 0,
+  "light_decay": 0
+}
