@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createNoise3D } from 'simplex-noise';
+import { createNoise4D } from 'simplex-noise';
 
 import STAR from '../config/star.json';
 
@@ -10,7 +10,11 @@ export class Star {
   } = {}) {
     this.radius = radius;
     this.position = position;
+
     this.palette = this._create_palette();
+    this.noise = createNoise4D();
+    this.time = 0;
+    this.face_color = new THREE.Color();
 
     this.group = this._create_group();
     this.surface = this._create_surface();
@@ -18,6 +22,16 @@ export class Star {
 
     this.group.add(this.surface);
     this.group.add(this.light);
+
+    this.face_directions = this._find_face_directions(this.surface.geometry);
+    this._paint_icosahedron();
+  }
+
+  update(delta_seconds) {
+    this.time += delta_seconds;
+
+    this._paint_icosahedron();
+    this.group.rotation.y += STAR.spin_speed * delta_seconds;
   }
 
   _average_palette() {
@@ -30,19 +44,22 @@ export class Star {
     return total.multiplyScalar(1 / this.palette.length);
   }
 
-  _point_heat(noise, direction) {
+  _point_heat(x, y, z) {
     const scale = STAR.noise_scale;
+    const time = this.time * STAR.boil_speed;
 
-    const low_frequency = noise(
-      direction.x * scale,
-      direction.y * scale,
-      direction.z * scale,
+    const low_frequency = this.noise(
+      x * scale,
+      y * scale,
+      z * scale,
+      time,
     );
 
-    const high_frequency = noise(
-      direction.x * scale * 5 + 30,
-      direction.y * scale * 5 + 15,
-      direction.z * scale * 5 + 5,
+    const high_frequency = this.noise(
+      x * scale * 5 + 30,
+      y * scale * 5 + 15,
+      z * scale * 5 + 5,
+      time * 2,
     );
 
     const mixed_noise = low_frequency * (1 - STAR.noise_variation) + high_frequency * STAR.noise_variation;
@@ -50,21 +67,19 @@ export class Star {
     return THREE.MathUtils.clamp(0.5 + 0.5 * mixed_noise * STAR.contrast, 0, 1);
   }
 
-  _point_color(heat) {
+  _point_color(heat, out) {
     const last = this.palette.length - 1;
     const position = heat * last;
     const lower = Math.min(Math.floor(position), last - 1);
 
-    return this.palette[lower]
-      .clone()
+    return out
+      .copy(this.palette[lower])
       .lerp(this.palette[lower + 1], position - lower);
   }
 
-  _paint_icosahedron(geometry) {
-    const noise = createNoise3D();
-
+  _find_face_directions(geometry) {
     const positions = geometry.attributes.position;
-    const colors = new Float32Array(positions.count * 3);
+    const directions = new Float32Array(positions.count);
 
     const center = new THREE.Vector3();
     const corner = new THREE.Vector3();
@@ -75,16 +90,33 @@ export class Star {
       for (let i = 0; i < 3; i++) {
         center.add(corner.fromBufferAttribute(positions, first + i));
       }
-      center.normalize();
 
-      const color = this._point_color(this._point_heat(noise, center));
+      center.normalize().toArray(directions, first);
+    }
+
+    return directions;
+  }
+
+  _paint_icosahedron(geometry) {
+    const colors = this.surface.geometry.attributes.color;
+    const directions = this.face_directions;
+    const face_color = this.face_color;
+
+    for (let first = 0; first < directions.length; first += 3) {
+      const heat = this._point_heat(
+        directions[first],
+        directions[first + 1],
+        directions[first + 2],
+      );
+
+      this._point_color(heat, face_color);
 
       for (let i = 0; i < 3; i++) {
-        color.toArray(colors, (first + i) * 3);
+        colors.setXYZ(first + i, face_color.r, face_color.g, face_color.b);
       }
     }
 
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    colors.needsUpdate = true;
   }
 
   _create_palette() {
@@ -107,7 +139,11 @@ export class Star {
 
   _create_geometry() {
     const geometry = new THREE.IcosahedronGeometry(this.radius, STAR.detail);
-    this._paint_icosahedron(geometry);
+    const vertex_count = geometry.attributes.position.count;
+
+    const colors = new THREE.BufferAttribute(new Float32Array(vertex_count * 3), 3);
+    colors.setUsage(THREE.DynamicDrawUsage);
+    geometry.setAttribute('color', colors);
 
     return geometry;
   }
