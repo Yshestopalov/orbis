@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 
 import ENGINE from '../config/engine.json';
+import { clamp } from '../utils/math.js';
 
-const clamp = (val, min, max) => Math.max(min, Math.min(val, max));
+const CAMERA = ENGINE.camera;
+const RENDERER = ENGINE.renderer;
+const TIMING = ENGINE.timing;
 
 export class Engine {
   constructor(canvas) {
@@ -44,54 +47,26 @@ export class Engine {
     this.frame_id = null;
   }
 
-  _create_scene() {
-    return new THREE.Scene();
-  }
-
-  _create_camera() {
-    const camera = new THREE.PerspectiveCamera(
-      ENGINE.field_of_view,
-      1,
-      ENGINE.near_plane,
-      ENGINE.far_plane,
-    );
-    camera.position.set(...ENGINE.start_position);
-
-    return camera;
-  }
-
-  _create_renderer() {
-    const renderer = new THREE.WebGLRenderer(
-      { 
-        canvas: this.canvas,
-        antialias: true,
-      }
-    );
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, ENGINE.max_pixel_ratio));
-
-    return renderer;
-  }
-
   _frame(now) {
-    requestAnimationFrame(this._on_frame);
+    this.frame_id = requestAnimationFrame(this._on_frame);
 
-    const delta_seconds = this._step_time(now);
+    const delta_time = this._step_time(now);
 
-    this._update_all(delta_seconds);
+    this._update_all(delta_time);
     this._render();
   }
 
   _step_time(now) {
-    const delta_seconds = (now - this.last_time) / 1000;
+    const delta_time = (now - this.last_time) / 1000;
 
     this.last_time = now;
 
-    return clamp(delta_seconds, 0, ENGINE.max_delta_seconds);
+    return clamp(delta_time, 0, TIMING.max_delta_time);
   }
 
-  _update_all(delta_seconds) {
+  _update_all(delta_time) {
     for (const item of this.updatables) {
-      item.update(delta_seconds);
+      item.update(delta_time);
     }
   }
 
@@ -107,5 +82,31 @@ export class Engine {
 
   _connect_resize() {
     window.addEventListener('resize', () => this._resize());
+  }
+
+  _create_scene() {
+    return new THREE.Scene();
+  }
+
+  _create_camera() {
+    const camera = new THREE.PerspectiveCamera(
+      CAMERA.field_of_view,
+      1,
+      CAMERA.near_plane,
+      CAMERA.far_plane,
+    );
+    camera.position.set(...CAMERA.start_position);
+
+    return camera;
+  }
+
+  _create_renderer() {
+    const renderer = new THREE.WebGLRenderer({
+      canvas: this.canvas,
+      antialias: RENDERER.antialias,
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, RENDERER.max_pixel_ratio));
+
+    return renderer;
   }
 }

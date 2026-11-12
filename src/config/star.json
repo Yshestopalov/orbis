@@ -1,13 +1,22 @@
 {
   "radius": 1000,
-  "detail": 15,
-  "palette": ["#ff4d00", "#ff9100", "#ffd23a", "#fff4b8"],
-  "noise_scale": 0.5,
-  "noise_variation": 0.25,
-  "contrast": 1.5,
-  "light_intensity": 3.0,
-  "light_distance": 3.0,
-  "light_decay": 3.0,
-  "boil_speed": 0.1,
-  "spin_speed": 0.05
+
+  "surface": {
+    "detail": 10,
+    "palette": ["#ff4d00", "#ff9100", "#ffd23a", "#fff4b8"],
+    "noise_scale": 0.5,
+    "noise_variation": 0.25,
+    "contrast": 1.5,
+    "boil_speed": 0.1
+  },
+
+  "motion": {
+    "spin_speed": 0.05
+  },
+
+  "light": {
+    "intensity": 3,
+    "distance": 0,
+    "decay": 0
+  }
 }
