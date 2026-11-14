@@ -6,6 +6,7 @@ import { clamp } from '../utils/math.js';
 
 const SURFACE = STAR.surface;
 const CORONA = STAR.corona;
+const PULSE = STAR.pulse;
 const MOTION = STAR.motion;
 const LIGHT = STAR.light;
 
@@ -35,6 +36,7 @@ export class Star {
     this.time += delta_time;
 
     this._paint_surface();
+    this._pulse();
     this.group.rotation.y += MOTION.spin_speed * delta_time;
   }
 
@@ -47,6 +49,22 @@ export class Star {
       shell.geometry.dispose();
       shell.material.dispose();
     }
+  }
+
+  _pulse() {
+    const phase = (Math.PI * 2 * this.time) / PULSE.period;
+
+    this.light.intensity = LIGHT.intensity * this._breath(phase);
+
+    this.corona.children.forEach((shell, index) => {
+      const shell_phase = phase - index * PULSE.ripple;
+
+      shell.material.opacity = CORONA.shells[index].opacity * this._breath(shell_phase);
+    });
+  }
+
+  _breath(phase) {
+    return 1 + PULSE.amount * Math.sin(phase);
   }
 
   _paint_surface() {

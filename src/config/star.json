@@ -20,6 +20,12 @@
     ]
   },
 
+  "pulse": {
+    "period": 6,
+    "amount": 0.25,
+    "ripple": 0.25
+  },
+
   "motion": {
     "spin_speed": 0.05
   },
