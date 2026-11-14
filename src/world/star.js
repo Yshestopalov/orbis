@@ -5,6 +5,7 @@ import STAR from '../config/star.json';
 import { clamp } from '../utils/math.js';
 
 const SURFACE = STAR.surface;
+const CORONA = STAR.corona;
 const MOTION = STAR.motion;
 const LIGHT = STAR.light;
 
@@ -22,6 +23,7 @@ export class Star {
     this.face_color = new THREE.Color();
 
     this.surface = this._create_surface();
+    this.corona = this._create_corona();
     this.light = this._create_light();
     this.group = this._create_group();
 
@@ -40,6 +42,11 @@ export class Star {
     this.surface.geometry.dispose();
     this.surface.material.dispose();
     this.light.dispose();
+
+    for (const shell of this.corona.children) {
+      shell.geometry.dispose();
+      shell.material.dispose();
+    }
   }
 
   _paint_surface() {
@@ -155,6 +162,31 @@ export class Star {
     });
   }
 
+  _create_corona() {
+    const color = this._color_at(CORONA.heat, new THREE.Color());
+    const corona = new THREE.Group();
+
+    for (const shell of CORONA.shells) {
+      corona.add(this._create_shell(color, shell));
+    }
+
+    return corona;
+  }
+
+  _create_shell(color, shell) {
+    const geometry = new THREE.IcosahedronGeometry(this.radius * shell.scale, CORONA.detail);
+    const material = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: shell.opacity,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+
+    return new THREE.Mesh(geometry, material);
+  }
+
   _create_light() {
     return new THREE.PointLight(
       this._average_color(),
@@ -169,6 +201,7 @@ export class Star {
     group.position.copy(this.position);
 
     group.add(this.surface);
+    group.add(this.corona);
     group.add(this.light);
 
     return group;

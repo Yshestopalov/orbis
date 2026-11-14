@@ -43,7 +43,7 @@ export class Engine {
   stop() {
     if (this.frame_id === null) return;
 
-    cancelAnimationFrame(this.frame_id)
+    cancelAnimationFrame(this.frame_id);
     this.frame_id = null;
   }
 

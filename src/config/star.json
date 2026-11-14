@@ -10,6 +10,16 @@
     "boil_speed": 0.1
   },
 
+  "corona": {
+    "detail": 5,
+    "heat": 0.5,
+    "shells": [
+      { "scale": 1.10, "opacity": 0.30 },
+      { "scale": 1.25, "opacity": 0.15 },
+      { "scale": 1.40, "opacity": 0.05 }
+    ]
+  },
+
   "motion": {
     "spin_speed": 0.05
   },
