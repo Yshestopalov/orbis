@@ -11,6 +11,13 @@
     "max_pixel_ratio": 2
   },
 
+  "bloom": {
+    "enabled": true,
+    "strength": 0.1,
+    "radius": 0.5,
+    "threshold": 0.1
+  },
+
   "timing": {
     "max_delta_time": 0.1
   }

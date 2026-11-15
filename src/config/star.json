@@ -11,7 +11,7 @@
   },
 
   "corona": {
-    "detail": 5,
+    "detail": 10,
     "heat": 0.5,
     "shells": [
       { "scale": 1.10, "opacity": 0.30 },

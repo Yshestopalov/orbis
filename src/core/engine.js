@@ -3,8 +3,14 @@ import * as THREE from 'three';
 import ENGINE from '../config/engine.json';
 import { clamp } from '../utils/math.js';
 
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
 const CAMERA = ENGINE.camera;
 const RENDERER = ENGINE.renderer;
+const BLOOM = ENGINE.bloom;
 const TIMING = ENGINE.timing;
 
 export class Engine {
@@ -18,6 +24,7 @@ export class Engine {
     this.scene = this._create_scene();
     this.camera = this._create_camera();
     this.renderer = this._create_renderer();
+    this.composer = this._create_composer();
 
     this._on_frame = (now) => this._frame(now);
 
@@ -71,13 +78,18 @@ export class Engine {
   }
 
   _render() {
-    this.renderer.render(this.scene, this.camera);
+    if (BLOOM.enabled) {
+      this.composer.render();
+    } else {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   _resize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.composer.setSize(window.innerWidth, window.innerHeight);
   }
 
   _connect_resize() {
@@ -108,5 +120,28 @@ export class Engine {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, RENDERER.max_pixel_ratio));
 
     return renderer;
+  }
+
+  _create_composer() {
+    const target = new THREE.WebGLRenderTarget(1, 1, {
+      type: THREE.HalfFloatType,
+      samples: RENDERER.msaa_samples,
+    });
+
+    const composer = new EffectComposer(this.renderer, target);
+    composer.addPass(new RenderPass(this.scene, this.camera));
+    composer.addPass(this._create_bloom_pass());
+    composer.addPass(new OutputPass());
+
+    return composer;
+  }
+
+  _create_bloom_pass() {
+    return new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      BLOOM.strength,
+      BLOOM.radius,
+      BLOOM.threshold,
+    );
   }
 }
