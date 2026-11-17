@@ -3,6 +3,7 @@ import { createNoise4D } from 'simplex-noise';
 
 import STAR from '../config/star.json';
 import { clamp } from '../utils/math.js';
+import { seeded_random } from '../utils/random.js';
 
 const SURFACE = STAR.surface;
 const CORONA = STAR.corona;
@@ -14,13 +15,15 @@ export class Star {
   constructor({
     radius = STAR.radius,
     position = new THREE.Vector3(),
+    seed = STAR.seed,
   } = {}) {
     this.radius = radius;
     this.position = position;
+    this.seed = seed;
     this.time = 0;
 
     this.palette = this._create_palette();
-    this.noise = createNoise4D();
+    this.noise = createNoise4D(seeded_random(seed));
     this.face_color = new THREE.Color();
 
     this.surface = this._create_surface();
