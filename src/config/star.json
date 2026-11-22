@@ -21,6 +21,20 @@
     ]
   },
 
+  "flares": {
+    "count": 50,
+    "heat": 0.5,
+    "opacity": 0.1,
+    "height": [0.05, 0.1],
+    "span_degrees": [3, 10],
+    "tube_radius": 0.005,
+    "tube_segments": 16,
+    "tube_sides": 4,
+    "arc_points": 8,
+    "lifetime_seconds": [3, 6],
+    "delay_seconds": [0, 3]
+  },
+
   "pulse": {
     "period": 6,
     "amount": 0.25,

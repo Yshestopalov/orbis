@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import { createNoise4D } from 'simplex-noise';
 
 import STAR from '../config/star.json';
+import { StarFlares } from './star_flares.js';
 import { clamp } from '../utils/math.js';
 import { seeded_random } from '../utils/random.js';
 
 const SURFACE = STAR.surface;
 const CORONA = STAR.corona;
+const FLARES = STAR.flares;
 const PULSE = STAR.pulse;
 const MOTION = STAR.motion;
 const LIGHT = STAR.light;
@@ -28,6 +30,7 @@ export class Star {
 
     this.surface = this._create_surface();
     this.corona = this._create_corona();
+    this.flares = this._create_flares();
     this.light = this._create_light();
     this.group = this._create_group();
 
@@ -40,12 +43,15 @@ export class Star {
 
     this._paint_surface();
     this._pulse();
+    this.flares.update(delta_time);
+
     this.group.rotation.y += MOTION.spin_speed * delta_time;
   }
 
   dispose() {
     this.surface.geometry.dispose();
     this.surface.material.dispose();
+    this.flares.dispose();
     this.light.dispose();
 
     for (const shell of this.corona.children) {
@@ -194,6 +200,14 @@ export class Star {
     return corona;
   }
 
+  _create_flares() {
+    return new StarFlares({
+      radius: this.radius,
+      color: this._color_at(FLARES.heat, new THREE.Color()),
+      seed: this.seed,
+    });
+  }
+
   _create_shell(color, shell) {
     const geometry = new THREE.IcosahedronGeometry(this.radius * shell.scale, CORONA.detail);
     const material = new THREE.MeshBasicMaterial({
@@ -223,6 +237,7 @@ export class Star {
 
     group.add(this.surface);
     group.add(this.corona);
+    group.add(this.flares.group);
     group.add(this.light);
 
     return group;
